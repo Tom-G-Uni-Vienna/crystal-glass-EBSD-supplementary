@@ -25,13 +25,6 @@ In addition, if you want to generate the images used in figures 1, 8, 9, S5 and 
 
 In folder ***\MTEX scripts plots & tables*** you can find all scripts required to plot the results of data import and processing, including all figures and supplementary figures with the exception of supplementary figure 1 (which only contains the information on how to measure scan distortion), and supplementary table 1. Please check the beginning of each plotting script to see which Matlab variables must be generated before plotting.
 
-## SCAN NAME GLOSSARY (INFO ALSO IN TABLE 1 OF MAIN PAPER)
-*Original scan name on acquisition &rarr; Scan name in paper*\
-ETK_5a_scan01 &rarr; Anhy_150\
-ETK_5a_scan05 &rarr; Anhy_200\
-ETK_5b_scan06 &rarr; Hy_200\
-ETK_5b_scan07 &rarr; Hy_1000
-
 ## COMPLETE OUTLINE OF DIGITAL SUPPLEMENTARY MATERIAL
 ### Folder: Figures & tables
 Empty folder, plotting scripts are set by default to output saved images to this folder, as is the script for generating supplementary table 1.
@@ -50,3 +43,10 @@ This folder contains the EBSD scan data used in this study, exported from the OI
 
 ### File: loadHelper.m
 **Following installation, the standard MTEX version 5.11.2 should be modified by navigating to the folder _\mtex-5.11.2\interfaces\tools_ and replacing the file _loadHelper.m_ with this version of the file.** This is required to prevent an error that can occur when importing .ang files, whereby not indexed points are not imported. The error is fixed in both MTEX versions 5.10 and 6.X, but present in 5.11.2.
+
+## SCAN NAME GLOSSARY (INFO ALSO IN TABLE 1 OF MAIN PAPER)
+*Original scan name on acquisition &rarr; Scan name in paper*\
+ETK_5a_scan01 &rarr; Anhy_150\
+ETK_5a_scan05 &rarr; Anhy_200\
+ETK_5b_scan06 &rarr; Hy_200\
+ETK_5b_scan07 &rarr; Hy_1000
