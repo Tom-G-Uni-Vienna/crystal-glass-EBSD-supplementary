@@ -39,7 +39,7 @@ This folder contains all scripts required to import the original .ang files into
 This folder contains all scripts required to plot the results of data import and processing, including all figures and supplementary figures with the exception of supplementary figure 1 (which only contains the information on how to measure scan distortion).
 
 ### Folder: Raw data
-This folder contains the EBSD scan data used in this study, exported from the OIM Analysis v. 8.0 software as .ang format (text) files. Files can be opened and viewed in Notepad and similar programs.
+This folder contains the EBSD scan data used in this study, exported from the OIM Analysis v. 8.0 software as .ang format (text) files and compressed as .7z files. Following decompression, files can be opened and viewed in Notepad and similar programs. Note that for other scripts to find these files, they must be place directly in this folders, not in subfolders.
 
 ### File: loadHelper.m
 **Following installation, the standard MTEX version 5.11.2 should be modified by navigating to the folder _\mtex-5.11.2\interfaces\tools_ and replacing the file _loadHelper.m_ with this version of the file.** This is required to prevent an error that can occur when importing .ang files, whereby not indexed points are not imported. The error is fixed in both MTEX versions 5.10 and 6.X, but present in 5.11.2.
