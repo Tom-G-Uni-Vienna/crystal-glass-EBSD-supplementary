@@ -44,7 +44,7 @@ This folder contains the EBSD scan data used in this study, exported from the OI
 ### File: loadHelper.m
 **Following installation, the standard MTEX version 5.11.2 should be modified by navigating to the folder _\mtex-5.11.2\interfaces\tools_ and replacing the file _loadHelper.m_ with this version of the file.** This is required to prevent an error that can occur when importing .ang files, whereby not indexed points are not imported. The error is fixed in both MTEX versions 5.10 and 6.X, but present in 5.11.2.
 
-## SCAN NAME GLOSSARY (INFO ALSO IN TABLE 1 OF MAIN PAPER)
+## SCAN NAME GLOSSARY
 *Original scan name on acquisition &rarr; Scan name in paper*\
 ETK_5a_scan01 &rarr; Anhy_150\
 ETK_5a_scan05 &rarr; Anhy_200\
