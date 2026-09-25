@@ -11,7 +11,7 @@ supplementary_location =...
 % Path to load MATLAB variables (automatically derived as long as supp. mat. structure
 % remains unchanged)
 loadlocation = [ supplementary_location...
-    '\FINAL Supplementary\FINAL scripts & data\MATLAB data'];
+    '\FINAL Supplementary\FINAL scripts & data\MATLAB data\Data undistorted maps'];
 
 % Output path (automatically derived as long as supp. mat. structure
 % remains unchanged)
@@ -25,7 +25,7 @@ cd(loadlocation)
 % MATLAB prefers to load data to structures and extract variables from them
 % instead of loading the variables directly 
 % (https://de.mathworks.com/matlabcentral/answers/28676-why-use-x-load-myfile-mat)
-input1=load('ETK5a5b_allscans_distort.mat','datastruct');
+input1=load('ETK5a5b_allscans_NOdistort_cithresh.mat','datastruct');
 
 datastruct=input1.datastruct;
 
@@ -33,48 +33,130 @@ clear input1
 
 fprintf('MATLAB variables loaded!\n\n') 
 
-%%
+% setMTEXpref('showMicronBar','off')
 
+
+%%
+setMTEXpref('showCoordinates','on')
+setMTEXpref('showMicronBar','off')
+
+mapn=1;
+
+% ebsd=datastruct(mapn,1).data;
+% eg=ebsd.gridify;
+% figure,plot(eg,eg.ci)
+% mtexColorMap black2white
+% clim([0 1])
+
+ebsd=datastruct(mapn,1).data;
+% eg=ebsd.gridify;
+% figure,plot(eg,eg.ci)
+% mtexColorMap black2white
+% clim([0 1])
+
+
+figure,plot(ebsd,ebsd.iq)
+mtexColorMap black2white
+
+% eg=ebsd.gridify;
+% 
+% figure,plot(eg(eg.ci>0.1),eg(eg.ci>0.1).iq)
+
+%%
 screendat=get(0,'ScreenSize');
 w=screendat(3);
 h=screendat(4);
 
 leftfrac=0.02;
 botfrac=0.045;
-horzfrac=0.55;
+horzfrac=0.32;
 
-ar = 0.9;
-
-lw=2.5; % linewidth
-fs=28; % fontsize x and y label
-ax_fs = 23; % fontsize axis numbering
-ax_lw = 2.5; % axis linewidth
-
-scanname={'Anhy\_150','Anhy\_200','Hy\_200','Hy\_1000'};
-
-figure,
-tiledlayout(2,2)
-for i=1:4
-    nexttile
-    fits=datastruct(i,1).data('indexed').fit;
-    histogram(fits(datastruct(i,1).data('indexed').ci>0.1),100)
-    xlim([0.4 2])
-    xticks([0.4 1 1.4 2])
-    title(scanname{i})
-    ylabel('N pixels')
-    xlabel('Fit')
-        ax = gca;
-    ax.XAxis.FontSize = ax_fs;
-    ax.YAxis.FontSize = ax_fs;
-    ax.XLabel.FontSize = fs-3;
-    ax.YLabel.FontSize = fs;
-    ax.Title.FontSize = fs;
-    ax.LineWidth = ax_lw;
-
-end
+rect=[189 -222 9 9];
 
 cd(savelocation)
 
+lw=3;
+
+mapn=1;
+
+ar=rect(4)/rect(3);
+
+ebsd=datastruct(mapn,1).data;
+
+sel=ebsd.inpolygon(rect);
+
+ebsdsel=ebsd(sel).gridify;
+
+figure,
+plot(ebsdsel,ebsdsel.iq)
+mtexColorMap black2white
+clim([20000 120000])
+hold on
+plot(datastruct(mapn).cifit_result(3,1).ci_fit_grains.boundary,'linewidth',lw,'linecolor','HotPink')
+hold on
+plot(datastruct(mapn+4).cifit_result(3,1).ci_fit_grains.boundary,'linewidth',lw,'linecolor','Orange')
+xlim([rect(1) rect(1)+rect(3)])
+ylim([rect(2) rect(2)+rect(4)])
+
 f = gcf;
 f.Position = [leftfrac*w botfrac*h horzfrac*w horzfrac*w*ar];
-exportgraphics(f,'fit_histograms.png','Resolution',450)
+exportgraphics(f,'speckle_stand_v_nostand_gbs_IQ.png','Resolution',300)
+
+figure,
+plot(ebsdsel,ebsdsel.ci)
+mtexColorMap black2white
+clim([0 1])
+hold on
+plot(datastruct(mapn).cifit_result(3,1).ci_fit_grains.boundary,'linewidth',lw,'linecolor','HotPink')
+hold on
+plot(datastruct(mapn+4).cifit_result(3,1).ci_fit_grains.boundary,'linewidth',lw,'linecolor','Orange')
+xlim([rect(1) rect(1)+rect(3)])
+ylim([rect(2) rect(2)+rect(4)])
+
+f = gcf;
+f.Position = [leftfrac*w botfrac*h horzfrac*w horzfrac*w*ar];
+exportgraphics(f,'speckle_stand_v_nostand_gbs_nostandCI.png','Resolution',300)
+
+ebsd=datastruct(mapn,2).data;
+
+sel=ebsd.inpolygon(rect);
+
+ebsdsel=ebsd(sel).gridify;
+
+figure,
+plot(ebsdsel,ebsdsel.ci)
+mtexColorMap black2white
+clim([0 1])
+hold on
+plot(datastruct(mapn).cifit_result(3,1).ci_fit_grains.boundary,'linewidth',lw,'linecolor','HotPink')
+hold on
+plot(datastruct(mapn+4).cifit_result(3,1).ci_fit_grains.boundary,'linewidth',lw,'linecolor','Orange')
+xlim([rect(1) rect(1)+rect(3)])
+ylim([rect(2) rect(2)+rect(4)])
+
+f = gcf;
+f.Position = [leftfrac*w botfrac*h horzfrac*w horzfrac*w*ar];
+exportgraphics(f,'speckle_stand_v_nostand_gbs_standCI.png','Resolution',300)
+
+ebsdsel_di=ebsdsel('Diopside');
+
+ipf_sel=ipfHSVKey(ebsdsel_di.orientations)
+ipf_sel.inversePoleFigureDirection=zvector;
+ipf_sel_colors=ipf_sel.orientation2color(ebsdsel_di.orientations)
+
+figure,
+plot(ebsdsel,ebsdsel.ci)
+mtexColorMap black2white
+clim([0 1])
+hold on
+plot(ebsdsel_di(ebsdsel_di.ci>0.1),ipf_sel_colors(ebsdsel_di.ci>0.1,:))
+hold on
+plot(datastruct(mapn).cifit_result(3,1).ci_fit_grains.boundary,'linewidth',lw,'linecolor','HotPink')
+hold on
+plot(datastruct(mapn+4).cifit_result(3,1).ci_fit_grains.boundary,'linewidth',lw,'linecolor','Orange')
+xlim([rect(1) rect(1)+rect(3)])
+ylim([rect(2) rect(2)+rect(4)])
+
+f = gcf;
+f.Position = [leftfrac*w botfrac*h horzfrac*w horzfrac*w*ar];
+exportgraphics(f,'speckle_stand_v_nostand_gbs_standIPF.png','Resolution',300)

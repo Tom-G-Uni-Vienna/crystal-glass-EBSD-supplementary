@@ -110,6 +110,391 @@ axy_fs = 10; % y axis ticklabel fontsize
 
 names = {' '; 'BSE_A_n_h_y'; '  EBSD_A_n_h_y'; 'BSE_H_y'; '  EBSD_H_y'};
 
+%%
+figure
+
+% Di fraction % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+    % decide whether the preferred variable (procA) is standardised (2) or
+    % non-standardised (1). Preferred variable will have flanking data from
+    % individual maps plotted.
+    procA=1;
+    procB=2;
+    
+    row=1; % which row of Pontesilli et al. data variable to use?
+    
+    % setup formatting - o is always standardised, x always nonstandardised
+    if procA==1
+        procMark='x';
+        procMarkB='o';
+        msA=ms1;
+        msB=ms2;
+    else
+        procMark='o';
+        procMarkB='x';
+        msA=ms2;
+        msB=ms1;
+    end
+    
+    % choose variable to be plotted
+    inputvar='afrac_Di';
+    
+    % position in plot
+    subplot(3,2,1)
+    
+    for sample_num=1:2
+        % value from Pontesilli et al. 2019    
+        sel=TPD{sample_num};
+        
+        % error bars based on CI 0.075 & 0.125 - CI 0.1 is(1)
+        errpos=r(sample_num,procA).(inputvar)(2)-r(sample_num,procA).(inputvar)(1);
+        errneg=r(sample_num,procA).(inputvar)(1)-r(sample_num,procA).(inputvar)(3);
+        
+        % check if errors are in the right direction
+            if errpos && errneg < 0
+                error('errpos and errneg both negative!')
+            elseif errpos  < 0
+                warning('errpos was negative!')    
+                errneg=max(abs([errneg errpos]));
+                errpos=0;
+            elseif errneg < 0
+                warning('errneg was negative!')    
+                errpos=max(abs([errneg errpos]));
+                errneg=0;
+            else
+            end
+        
+        % Pontesilli et al. data
+        errorbar( pos(sample_num), 100*sel(row,1), 100*sel(row,2), 100*sel(row,2) ,'Marker','s' ,'Color',colorlist{sample_num},'MarkerEdgeColor',colorlist{sample_num},'MarkerFaceColor',colorlist{sample_num},'markerSize',msS,'LineWidth',lw)
+        hold on
+        % EBSD data, preferred processing type (error bar based on CI threshold variation +/- 0.025, only for dry sample, otherwise errbar is to small)
+        if sample_num==1
+        e=errorbar( pos(sample_num)+posshift, 100*r(sample_num,procA).(inputvar)(1), 100*errneg, 100*errpos, 'Marker',procMark ,'Color',colorlist{sample_num},'MarkerFaceColor',colorlist{sample_num},'markerSize',msA,'LineWidth',2*lw);
+        e.Cap.LineWidth=1;
+        e.Bar.LineWidth=1;
+        else
+        plot( pos(sample_num)+posshift, 100*r(sample_num,procA).(inputvar)(1), 'Marker',procMark ,'Color',colorlist{sample_num},'MarkerFaceColor',colorlist{sample_num},'markerSize',msA,'LineWidth',2*lw);    
+        hold on
+        end
+        % EBSD values for individual scans (for "preferred processing type" only)
+        plot( pos(sample_num)+posshift-smallshift, 100*d(q(sample_num),procA).(inputvar), 'Marker',procMark,'Color',colorlist{sample_num},'markerSize',msA)
+        hold on
+        plot( pos(sample_num)+posshift+smallshift, 100*d(q(sample_num)+1,procA).(inputvar), 'Marker',procMark,'Color',colorlist{sample_num},'markerSize',msA)
+        hold on
+        % EBSD data, non-preferred processing type 
+        plot( pos(sample_num)+posshift, 100*r(sample_num,procB).(inputvar)(1), 'Marker',procMarkB,'Color',colorlist{sample_num},'markerSize',msB,'LineWidth',2*lw)
+        hold on
+    
+    end
+    hold off
+    xlim([xmin xmax])
+    ylim([30 71])
+    ylabel('\phi_C_p_x (%)')
+    set(gca,'xtick',[0 pos(1),pos(1)+posshift,pos(2),pos(2)+posshift],'xticklabel',names)
+    ax=gca;
+    ax.XTickLabelRotation = 90;
+    ax.LineWidth = ax_lw;     
+    ax.XAxis.FontSize = axx_fs;
+    ax.YAxis.FontSize = axy_fs;
+    
+% Magnetite fraction % % % % % % % % % % % % % % % % % % % % % % % % % % % 
+
+    procA=1;
+    procB=2;
+    row=1;
+    
+    if procA==1
+        procMark='x';
+        procMarkB='o';
+        msA=ms1;
+        msB=ms2;
+    else
+        procMark='o';
+        procMarkB='x';
+        msA=ms2;
+        msB=ms1;
+    end
+    
+    inputvar='afrac_Tmt';
+    
+    subplot(3,2,2)
+    for sample_num=1:2
+        
+         % value from Pontesilli et al. 2019    
+        sel=TPM{sample_num};
+        
+        % Pontesilli et al. data
+        errorbar( pos(sample_num), 100*sel(row,1), 100*sel(row,2), 100*sel(row,2) ,'Marker','s' ,'Color',colorlist{sample_num},'MarkerEdgeColor',colorlist{sample_num},'MarkerFaceColor',colorlist{sample_num},'markerSize',msS,'LineWidth',lw)
+        hold on
+        % EBSD data, preferred processing type (no error bar as smaller than
+        % symbol)
+        plot( pos(sample_num)+posshift, 100*r(sample_num,procA).(inputvar)(1), 'Marker',procMark ,'Color',colorlist{sample_num},'MarkerFaceColor',colorlist{sample_num},'markerSize',msA,'LineWidth',2*lw);
+        hold on
+        % EBSD values for individual scans (for "preferred processing type" only)
+        plot( pos(sample_num)+posshift-smallshift, 100*d(q(sample_num),procA).(inputvar), 'Marker',procMark,'Color',colorlist{sample_num},'markerSize',msA)
+        hold on
+        plot( pos(sample_num)+posshift+smallshift, 100*d(q(sample_num)+1,procA).(inputvar), 'Marker',procMark,'Color',colorlist{sample_num},'markerSize',msA)
+        hold on
+        % EBSD data, non-preferred processing type 
+        plot( pos(sample_num)+posshift, 100*r(sample_num,procB).(inputvar)(1), 'Marker',procMarkB,'Color',colorlist{sample_num},'markerSize',msB,'LineWidth',2*lw)
+        hold on
+    
+    end
+    hold off
+    xlim([xmin xmax])
+    % ylim([0 0.04])    
+    ylabel('\phi_T_m_t (%)')
+    set(gca,'xtick',[0 pos(1),pos(1)+posshift,pos(2),pos(2)+posshift],'xticklabel',names)
+    ax=gca;
+    ax.XTickLabelRotation = 90;
+    ax.LineWidth = ax_lw;     
+    ax.XAxis.FontSize = axx_fs;
+    ax.YAxis.FontSize = axy_fs;
+
+% Di Lmax10 % %  % % % % % % % % % % % % % % % % % % % % % % % % % 
+
+    procA=1;
+    procB=2;
+    row=3;
+    
+    if procA==1
+        procMark='x';
+        procMarkB='o';
+        msA=ms1;
+        msB=ms2;
+    else
+        procMark='o';
+        procMarkB='x';
+        msA=ms2;
+        msB=ms1;
+    end
+    
+    inputvar='mean_L10pont_Area_D';
+    
+    subplot(3,2,3)
+    for sample_num=1:2        
+        sel=TPD{sample_num};
+        
+        errpos=r(sample_num,procA).std_L10pont_Area_D(1);
+        errneg=r(sample_num,procA).std_L10pont_Area_D(1);
+        
+        % Pontesilli et al. data
+        errorbar( pos(sample_num), sel(row,1), sel(row,2), sel(row,2) ,'Marker','s' ,'Color','k','MarkerEdgeColor',colorlist{sample_num},'MarkerFaceColor',colorlist{sample_num},'markerSize',msS,'LineWidth',lw)
+        hold on
+        plot( pos(sample_num), sel(row,1),'Marker','s' ,'Color',colorlist{sample_num},'MarkerFaceColor',colorlist{sample_num},'markerSize',msS)
+        hold on
+        % EBSD data, preferred processing type, errorbar = s.d. (and errbar = black) 
+        e=errorbar( pos(sample_num)+posshift, r(sample_num,procA).(inputvar)(1), errneg, errpos, 'Marker',procMark ,'Color','k','MarkerFaceColor',colorlist{sample_num},'markerSize',msA,'LineWidth',2*lw);
+        e.Cap.LineWidth=1;
+        e.Bar.LineWidth=1;
+        hold on
+        plot(pos(sample_num)+posshift, r(sample_num,procA).(inputvar)(1), 'Marker',procMark ,'Color',colorlist{sample_num},'MarkerFaceColor',colorlist{sample_num},'markerSize',msA,'LineWidth',2*lw);
+        hold on
+        % EBSD values for individual scans (for "preferred processing type" only)
+        plot( pos(sample_num)+posshift-smallshift, d(q(sample_num),procA).mean_Lpont10_D, 'Marker',procMark,'Color',colorlist{sample_num},'markerSize',msA)
+        hold on
+        plot( pos(sample_num)+posshift+smallshift, d(q(sample_num)+1,procA).mean_Lpont10_D, 'Marker',procMark,'Color',colorlist{sample_num},'markerSize',msA)
+        hold on
+        % EBSD data, non-preferred processing type 
+        plot( pos(sample_num)+posshift, r(sample_num,procB).(inputvar)(1), 'Marker',procMarkB,'Color',colorlist{sample_num},'markerSize',msB,'LineWidth',2*lw)
+        hold on
+    end
+    hold off
+    xlim([xmin xmax])
+    % ylim([0 130])    
+    ylabel('\surd(L*W)_m_a_x Cpx (\mum)')
+    set(gca,'xtick',[0 pos(1),pos(1)+posshift,pos(2),pos(2)+posshift],'xticklabel',names)
+    ax=gca;
+    ax.XTickLabelRotation = 90;
+    ax.LineWidth = ax_lw;     
+    ax.XAxis.FontSize = axx_fs;
+    ax.YAxis.FontSize = axy_fs;
+
+% Tmt Lmax10 % %  % % % % % % % % % % % % % % % % % % % % % % % % %
+
+    procA=1;
+    procB=2;
+    row=3;
+    
+    if procA==1
+        procMark='x';
+        procMarkB='o';
+        msA=ms1;
+        msB=ms2;
+    else
+        procMark='o';
+        procMarkB='x';
+        msA=ms2;
+        msB=ms1;
+    end
+    
+    inputvar='mean_L10pont_Area_M';
+    
+    subplot(3,2,4)
+    for sample_num=1:2
+        
+        sel=TPM{sample_num};
+        
+        errpos=r(sample_num,procA).std_L10pont_Area_M(1);
+        errneg=r(sample_num,procA).std_L10pont_Area_M(1);
+        
+        % Pontesilli et al. data
+        errorbar( pos(sample_num), sel(row,1), sel(row,2), sel(row,2) ,'Marker','s' ,'Color','k','MarkerEdgeColor',colorlist{sample_num},'MarkerFaceColor',colorlist{sample_num},'markerSize',msS,'LineWidth',lw)
+        hold on
+        plot( pos(sample_num), sel(row,1),'Marker','s' ,'Color',colorlist{sample_num},'MarkerFaceColor',colorlist{sample_num},'markerSize',msS)
+        hold on
+        % EBSD data, preferred processing type, errorbar = s.d. (and errbar = black) 
+        e=errorbar( pos(sample_num)+posshift, r(sample_num,procA).(inputvar)(1), errneg, errpos, 'Marker',procMark ,'Color','k','MarkerFaceColor',colorlist{sample_num},'markerSize',msA,'LineWidth',2*lw);
+        e.Cap.LineWidth=1;
+        e.Bar.LineWidth=1;
+        hold on
+        plot(pos(sample_num)+posshift, r(sample_num,procA).(inputvar)(1), 'Marker',procMark ,'Color',colorlist{sample_num},'MarkerFaceColor',colorlist{sample_num},'markerSize',msA,'LineWidth',2*lw);
+        hold on
+        % EBSD values for individual scans (for "preferred processing type" only)
+        plot( pos(sample_num)+posshift-smallshift, d(q(sample_num),procA).mean_Lpont10_M, 'Marker',procMark,'Color',colorlist{sample_num},'markerSize',msA)
+        hold on
+        plot( pos(sample_num)+posshift+smallshift, d(q(sample_num)+1,procA).mean_Lpont10_M, 'Marker',procMark,'Color',colorlist{sample_num},'markerSize',msA)
+        hold on
+        % EBSD data, non-preferred processing type 
+        plot( pos(sample_num)+posshift, r(sample_num,procB).(inputvar)(1), 'Marker',procMarkB,'Color',colorlist{sample_num},'markerSize',msB,'LineWidth',2*lw)
+        hold on
+    end
+    hold off
+    xlim([xmin xmax])
+    % ylim([0 13])
+    ylabel('\surd(L*W)_m_a_x Tmt (\mum)')
+    set(gca,'xtick',[0 pos(1),pos(1)+posshift,pos(2),pos(2)+posshift],'xticklabel',names)
+    ax=gca;
+    ax.XTickLabelRotation = 90;
+    ax.LineWidth = ax_lw;     
+    ax.XAxis.FontSize = axx_fs;
+    ax.YAxis.FontSize = axy_fs;
+
+% Di Gmax10 % %  % % % % % % % % % % % % % % % % % % % % % % % % % 
+
+    procA=1;
+    procB=2;
+    row=5;
+    
+    if procA==1
+        procMark='x';
+        procMarkB='o';
+        msA=ms1;
+        msB=ms2;
+    else
+        procMark='o';
+        procMarkB='x';
+        msA=ms2;
+        msB=ms1;
+    end
+    
+    inputvar='mean_L10pont_Area_D';
+    
+    subplot(3,2,5)
+    for sample_num=1:2
+        
+        sel=TPD{sample_num};
+        
+        errpos=(r(sample_num,procA).std_L10pont_Area_D(1))/(3600*10000);
+        errneg=errpos;
+        
+        % Pontesilli et al. data
+        errorbar( pos(sample_num), sel(row,1), sel(row,2), sel(row,2) ,'Marker','s' ,'Color','k','MarkerEdgeColor',colorlist{sample_num},'MarkerFaceColor',colorlist{sample_num},'markerSize',msS,'LineWidth',lw)
+        hold on
+        plot( pos(sample_num), sel(row,1),'Marker','s' ,'Color',colorlist{sample_num},'MarkerFaceColor',colorlist{sample_num},'markerSize',msS)
+        hold on
+        % EBSD data, preferred processing type, errorbar = s.d. (and errbar = black) 
+        e=errorbar( pos(sample_num)+posshift, (r(sample_num,procA).(inputvar)(1))/(3600*10000), errneg, errpos, 'Marker',procMark ,'Color','k','MarkerFaceColor',colorlist{sample_num},'markerSize',msA,'LineWidth',2*lw);
+        e.Cap.LineWidth=1;
+        e.Bar.LineWidth=1;
+        hold on
+        plot(pos(sample_num)+posshift, (r(sample_num,procA).(inputvar)(1))/(3600*10000), 'Marker',procMark ,'Color',colorlist{sample_num},'MarkerFaceColor',colorlist{sample_num},'markerSize',msA,'LineWidth',2*lw);
+        hold on
+        % EBSD values for individual scans (for "preferred processing type" only)
+        plot( pos(sample_num)+posshift-smallshift, d(q(sample_num),procA).mean_Lpont10_D/(3600*10000), 'Marker',procMark,'Color',colorlist{sample_num},'markerSize',msA)
+        hold on
+        plot( pos(sample_num)+posshift+smallshift, d(q(sample_num)+1,procA).mean_Lpont10_D/(3600*10000), 'Marker',procMark,'Color',colorlist{sample_num},'markerSize',msA)
+        hold on
+        % EBSD data, non-preferred processing type 
+        plot( pos(sample_num)+posshift, (r(sample_num,procB).(inputvar)(1))/(3600*10000), 'Marker',procMarkB,'Color',colorlist{sample_num},'markerSize',msB,'LineWidth',2*lw)
+        hold on
+    end
+    hold off
+    xlim([xmin xmax])
+    ylim([1e-6 2.1e-6])
+    ylabel('G_m_a_x Cpx (cm s^-^1)')
+    set(gca,'xtick',[0 pos(1),pos(1)+posshift,pos(2),pos(2)+posshift],'xticklabel',names)
+    ax=gca;
+    ax.XTickLabelRotation = 90;
+    ax.LineWidth = ax_lw;     
+    ax.XAxis.FontSize = axx_fs;
+    ax.YAxis.FontSize = axy_fs;
+
+% Tmt Gmax10 % %  % % % % % % % % % % % % % % % % % % % % % % % % % 
+
+    procA=1;
+    procB=2;
+    row=5;
+    
+    if procA==1
+        procMark='x';
+        procMarkB='o';
+        msA=ms1;
+        msB=ms2;
+    else
+        procMark='o';
+        procMarkB='x';
+        msA=ms2;
+        msB=ms1;
+    end
+    
+    inputvar='mean_L10pont_Area_M';
+    
+    subplot(3,2,6)
+    for sample_num=1:2
+        
+        sel=TPM{sample_num};
+        
+        errpos=(r(sample_num,procA).std_L10pont_Area_M(1))/(3600*10000);
+        errneg=errpos;
+        
+        % Pontesilli et al. data
+        errorbar( pos(sample_num), sel(row,1), sel(row,2), sel(row,2) ,'Marker','s' ,'Color','k','MarkerEdgeColor',colorlist{sample_num},'MarkerFaceColor',colorlist{sample_num},'markerSize',msS,'LineWidth',lw)
+        hold on
+        plot( pos(sample_num), sel(row,1),'Marker','s' ,'Color',colorlist{sample_num},'MarkerFaceColor',colorlist{sample_num},'markerSize',msS)
+        hold on
+        % EBSD data, preferred processing type, errorbar = s.d. (and errbar = black) 
+        e=errorbar( pos(sample_num)+posshift, (r(sample_num,procA).(inputvar)(1))/(3600*10000), errneg, errpos, 'Marker',procMark ,'Color','k','MarkerFaceColor',colorlist{sample_num},'markerSize',msA,'LineWidth',2*lw);
+        e.Cap.LineWidth=1;
+        e.Bar.LineWidth=1;
+        hold on
+        plot(pos(sample_num)+posshift, (r(sample_num,procA).(inputvar)(1))/(3600*10000), 'Marker',procMark ,'Color',colorlist{sample_num},'MarkerFaceColor',colorlist{sample_num},'markerSize',msA,'LineWidth',2*lw);
+        hold on
+        % EBSD values for individual scans (for "preferred processing type" only)
+        plot( pos(sample_num)+posshift-smallshift, d(q(sample_num),procA).mean_Lpont10_M/(3600*10000), 'Marker',procMark,'Color',colorlist{sample_num},'markerSize',msA)
+        hold on
+        plot( pos(sample_num)+posshift+smallshift, d(q(sample_num)+1,procA).mean_Lpont10_M/(3600*10000), 'Marker',procMark,'Color',colorlist{sample_num},'markerSize',msA)
+        hold on
+        % EBSD data, non-preferred processing type 
+        plot( pos(sample_num)+posshift, (r(sample_num,procB).(inputvar)(1))/(3600*10000), 'Marker',procMarkB,'Color',colorlist{sample_num},'markerSize',msB,'LineWidth',2*lw)
+        hold on
+    end
+    hold off
+    xlim([xmin xmax])
+    % ylim([0 2.1e-6])
+    ylabel('G_m_a_x Tmt (cm s^-^1)')
+    set(gca,'xtick',[0 pos(1),pos(1)+posshift,pos(2),pos(2)+posshift],'xticklabel',names)
+    ax=gca;
+    ax.XTickLabelRotation = 90;
+    ax.LineWidth = ax_lw;     
+    ax.XAxis.FontSize = axx_fs;
+    ax.YAxis.FontSize = axy_fs;
+    
+f = gcf;
+f.Position = [leftfrac*w botfrac*h horzfrac*w vertfrac*h];
+
+cd(savelocation)
+exportgraphics(f,'fig7panel.png','Resolution',1000)
 close
 %%
 figure
@@ -139,11 +524,11 @@ figure
         sel=TPD{sample_num};
 
         % Pontesilli et al. data
-        errorbar( pos(sample_num), sel(row,1), sel(row,2), sel(row,2) ,'Marker','s' ,'Color',colorlist{sample_num},'MarkerEdgeColor',colorlist{sample_num},'MarkerFaceColor',colorlist{sample_num},'markerSize',msS,'LineWidth',lw)
+        errorbar( pos(sample_num), sel(row,1), sel(row,2), sel(row,2) ,'Marker','s' ,'Color',colorlist{sample_num},'MarkerFaceColor',colorlist{sample_num},'markerSize',msS)
         hold on
         % EBSD data, preferred processing type (errorbar smaller than
         % symbol)
-        plot( pos(sample_num)+posshift, r(sample_num,procA).(inputvar)(1), 'Marker',procMark ,'Color',colorlist{sample_num},'markerSize',msA,'LineWidth',2*lw);
+        plot( pos(sample_num)+posshift, r(sample_num,procA).(inputvar)(1), 'Marker',procMark ,'Color',colorlist{sample_num},'markerSize',msA,'LineWidth',lw);
         hold on
         % EBSD values for individual scans (for "preferred processing type" only)
         plot( pos(sample_num)+posshift-smallshift, d(q(sample_num),procA).(inputvar), 'Marker',procMark,'Color',colorlist{sample_num},'markerSize',msA)
@@ -151,19 +536,17 @@ figure
         plot( pos(sample_num)+posshift+smallshift, d(q(sample_num)+1,procA).(inputvar), 'Marker',procMark,'Color',colorlist{sample_num},'markerSize',msA)
         hold on
         % EBSD data, non-preferred processing type 
-        plot( pos(sample_num)+posshift, r(sample_num,procB).(inputvar)(1), 'Marker',procMarkB,'Color',colorlist{sample_num},'markerSize',msB,'LineWidth',2*lw)
+        plot( pos(sample_num)+posshift, r(sample_num,procB).(inputvar)(1), 'Marker',procMarkB,'Color',colorlist{sample_num},'markerSize',msB,'LineWidth',lw)
         hold on
     end
     hold off
     xlim([xmin xmax])
     ylim([250 1150])
-    ylabel('Cpx S_v^P mm^-^1')
+    title('Cpx S_v^ ^P')
+    ylabel('mm^-^1')
     set(gca,'xtick',[0 pos(1),pos(1)+posshift,pos(2),pos(2)+posshift],'xticklabel',names)
     ax=gca;
     ax.XTickLabelRotation = 90;
-    ax.LineWidth = ax_lw;     
-    ax.XAxis.FontSize = axx_fs;
-    ax.YAxis.FontSize = axy_fs;
 
 % Tmt NA % % % % % % % % % % % % % % % % % % % % % % % % % % % 
 
@@ -191,11 +574,11 @@ figure
         sel=TPM{sample_num};
         
         % Pontesilli et al. data
-        errorbar( pos(sample_num), sel(row,1), sel(row,2), sel(row,2) ,'Marker','s' ,'Color',colorlist{sample_num},'MarkerEdgeColor',colorlist{sample_num},'MarkerFaceColor',colorlist{sample_num},'markerSize',msS,'LineWidth',lw)
+        errorbar( pos(sample_num), sel(row,1), sel(row,2), sel(row,2) ,'Marker','s' ,'Color',colorlist{sample_num},'MarkerFaceColor',colorlist{sample_num},'markerSize',msS)
         hold on
         % EBSD data, preferred processing type (errorbar smaller than
         % symbol)
-        plot( pos(sample_num)+posshift, r(sample_num,procA).(inputvar)(1), 'Marker',procMark ,'Color',colorlist{sample_num},'markerSize',msA,'LineWidth',2*lw);
+        plot( pos(sample_num)+posshift, r(sample_num,procA).(inputvar)(1), 'Marker',procMark ,'Color',colorlist{sample_num},'markerSize',msA,'LineWidth',lw);
         hold on
         % EBSD values for individual scans (for "preferred processing type" only)
         plot( pos(sample_num)+posshift-smallshift, d(q(sample_num),procA).(inputvar), 'Marker',procMark,'Color',colorlist{sample_num},'markerSize',msA)
@@ -203,19 +586,17 @@ figure
         plot( pos(sample_num)+posshift+smallshift, d(q(sample_num)+1,procA).(inputvar), 'Marker',procMark,'Color',colorlist{sample_num},'markerSize',msA)
         hold on
         % EBSD data, non-preferred processing type 
-        plot( pos(sample_num)+posshift, r(sample_num,procB).(inputvar)(1), 'Marker',procMarkB,'Color',colorlist{sample_num},'markerSize',msB,'LineWidth',2*lw)
+        plot( pos(sample_num)+posshift, r(sample_num,procB).(inputvar)(1), 'Marker',procMarkB,'Color',colorlist{sample_num},'markerSize',msB,'LineWidth',lw)
         hold on
     end
     hold off
     xlim([xmin xmax])
     % ylim([0 4800])
-    ylabel('N_A Tmt mm^-^2')
+    title('Tmt N_A')
+    ylabel('mm^-^2')
     set(gca,'xtick',[0 pos(1),pos(1)+posshift,pos(2),pos(2)+posshift],'xticklabel',names)
     ax=gca;
     ax.XTickLabelRotation = 90;
-    ax.LineWidth = ax_lw;     
-    ax.XAxis.FontSize = axx_fs;
-    ax.YAxis.FontSize = axy_fs;
 
 % Tmt d % % % % % % % % % % % % % % % % % % % % % % % % % % % 
     
@@ -243,11 +624,11 @@ figure
         sel=TPM{sample_num};
         
         % Pontesilli et al. data
-        errorbar( pos(sample_num), sel(row,1), sel(row,2), sel(row,2) ,'Marker','s' ,'Color',colorlist{sample_num},'MarkerEdgeColor',colorlist{sample_num},'MarkerFaceColor',colorlist{sample_num},'markerSize',msS,'LineWidth',lw)
+        errorbar( pos(sample_num), sel(row,1), sel(row,2), sel(row,2) ,'Marker','s' ,'Color',colorlist{sample_num},'MarkerFaceColor',colorlist{sample_num},'markerSize',msS)
         hold on
         % EBSD data, preferred processing type (errorbar smaller than
         % symbol)
-        plot( pos(sample_num)+posshift, r(sample_num,procA).(inputvar)(1), 'Marker',procMark ,'Color',colorlist{sample_num},'MarkerFaceColor',colorlist{sample_num},'markerSize',msA,'LineWidth',2*lw);
+        plot( pos(sample_num)+posshift, r(sample_num,procA).(inputvar)(1), 'Marker',procMark ,'Color',colorlist{sample_num},'MarkerFaceColor',colorlist{sample_num},'markerSize',msA,'LineWidth',lw);
         hold on
         % EBSD values for individual scans (for "preferred processing type" only)
         plot( pos(sample_num)+posshift-smallshift, d(q(sample_num),procA).(inputvar), 'Marker',procMark,'Color',colorlist{sample_num},'markerSize',msA)
@@ -255,19 +636,17 @@ figure
         plot( pos(sample_num)+posshift+smallshift, d(q(sample_num)+1,procA).(inputvar), 'Marker',procMark,'Color',colorlist{sample_num},'markerSize',msA)
         hold on
         % EBSD data, non-preferred processing type 
-        plot( pos(sample_num)+posshift, r(sample_num,procB).(inputvar)(1), 'Marker',procMarkB,'Color',colorlist{sample_num},'markerSize',msB,'LineWidth',2*lw)
+        plot( pos(sample_num)+posshift, r(sample_num,procB).(inputvar)(1), 'Marker',procMarkB,'Color',colorlist{sample_num},'markerSize',msB,'LineWidth',lw)
         hold on
     end
     hold off
     xlim([xmin xmax])
     % ylim([0 4800])
-    ylabel('d_T_m_t µm')
+    title('Tmt d')
+    ylabel('µm')
     set(gca,'xtick',[0 pos(1),pos(1)+posshift,pos(2),pos(2)+posshift],'xticklabel',names)
     ax=gca;
     ax.XTickLabelRotation = 90;
-    ax.LineWidth = ax_lw;     
-    ax.XAxis.FontSize = axx_fs;
-    ax.YAxis.FontSize = axy_fs;
 
 % Tmt Gbatch % % % % % % % % % % % % % % % % % % % % % % % % % % % 
 
@@ -295,11 +674,11 @@ figure
         sel=TPM{sample_num};        
         
         % Pontesilli et al. data
-        errorbar( pos(sample_num), sel(row,1), sel(row,2), sel(row,2) ,'Marker','s' ,'Color',colorlist{sample_num},'MarkerEdgeColor',colorlist{sample_num},'MarkerFaceColor',colorlist{sample_num},'markerSize',msS,'LineWidth',lw)
+        errorbar( pos(sample_num), sel(row,1), sel(row,2), sel(row,2) ,'Marker','s' ,'Color',colorlist{sample_num},'MarkerFaceColor',colorlist{sample_num},'markerSize',msS)
         hold on
         % EBSD data, preferred processing type (errorbar smaller than
         % symbol)
-        plot( pos(sample_num)+posshift, 10*r(sample_num,procA).(inputvar)(1), 'Marker',procMark ,'Color',colorlist{sample_num},'MarkerFaceColor',colorlist{sample_num},'markerSize',msA,'LineWidth',2*lw);
+        plot( pos(sample_num)+posshift, 10*r(sample_num,procA).(inputvar)(1), 'Marker',procMark ,'Color',colorlist{sample_num},'MarkerFaceColor',colorlist{sample_num},'markerSize',msA,'LineWidth',lw);
         hold on
         % EBSD values for individual scans (for "preferred processing type" only)
         plot( pos(sample_num)+posshift-smallshift, 10*d(q(sample_num),procA).(inputvar), 'Marker',procMark,'Color',colorlist{sample_num},'markerSize',msA)
@@ -307,23 +686,21 @@ figure
         plot( pos(sample_num)+posshift+smallshift, 10*d(q(sample_num)+1,procA).(inputvar), 'Marker',procMark,'Color',colorlist{sample_num},'markerSize',msA)
         hold on
         % EBSD data, non-preferred processing type 
-        plot( pos(sample_num)+posshift, 10*r(sample_num,procB).(inputvar)(1), 'Marker',procMarkB,'Color',colorlist{sample_num},'markerSize',msB,'LineWidth',2*lw)
+        plot( pos(sample_num)+posshift, 10*r(sample_num,procB).(inputvar)(1), 'Marker',procMarkB,'Color',colorlist{sample_num},'markerSize',msB,'LineWidth',lw)
         hold on
     end
     hold off
     xlim([xmin xmax])
     % ylim([0 4800])
-    ylabel('G_b_a_t_c_h Tmt cms^-^1')
+    title('Tmt G_b_a_t_c_h')
+    ylabel('cm s^-^1')
     set(gca,'xtick',[0 pos(1),pos(1)+posshift,pos(2),pos(2)+posshift],'xticklabel',names)
     ax=gca;
     ax.XTickLabelRotation = 90;
-    ax.LineWidth = ax_lw;     
-    ax.XAxis.FontSize = axx_fs;
-    ax.YAxis.FontSize = axy_fs;
 
 f = gcf;
 f.Position = [leftfrac*w botfrac*h horzfrac*w vertfrac*0.631*h];
 
 cd(savelocation)
-exportgraphics(f,'fig7panel.png','Resolution',1000)
+exportgraphics(f,'fig7panel2.png','Resolution',2000)
 close

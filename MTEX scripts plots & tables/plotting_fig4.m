@@ -21,7 +21,7 @@ cd(loadlocation)
 % MATLAB prefers to load data to structures and extract variables from them
 % instead of loading the variables directly 
 % (https://de.mathworks.com/matlabcentral/answers/28676-why-use-x-load-myfile-mat)
-input1=load('ETK5a5b_allscans_distort_grainsmooth.mat','datastruct');
+input1=load('ETK5a5b_allscans_distort_minsizethresh.mat','datastruct','datastruct');
 
 datastruct=input1.datastruct;
 
@@ -29,15 +29,15 @@ clear input1
 
 fprintf('MATLAB variables loaded!\n\n') 
 
-smoothnum=[datastruct(1).smooth_result.smooth_num];
+minsize=datastruct(1).minsize_value;
 
 %% Plotting format settings
 
-lw=4.5; % linewidth
-fs=43; % fontsize x and y label
-ax_fs = 35; % fontsize axis numbering
-ax_lw = 4.5; % axis linewidth
-msz=20; % markersize
+lw=5; % linewidth
+fs=56; % fontsize x and y label
+ax_fs = 46; % fontsize axis numbering
+ax_lw = 5; % axis linewidth
+msz=28; % markersize
 
 % Get screen sizes and define screen fractions for plot positioning
 screendat=get(0,'ScreenSize');
@@ -61,7 +61,7 @@ color=color([4:7],:);
 
 
 
-%% Fig 2 f
+%% Fig 4 a
 
 ylab='S_v^P Cpx (mm^-^1)';
 
@@ -71,39 +71,34 @@ figure,
     for scan_num=1:4
         for proc_type=1:2      
         
-         gbldi(proc_type,:)=[datastruct(scan_num,proc_type).smooth_result.GBlength_Di];
-
-        di_g(proc_type,:)=[datastruct(scan_num,proc_type).smooth_result.area_Di_grains];
-        tmt_g(proc_type,:)=[datastruct(scan_num,proc_type).smooth_result.area_Tmt_grains];
-        esk_g(proc_type,:)=[datastruct(scan_num,proc_type).smooth_result.area_Esk_grains];
-        not_g(proc_type,:)=[datastruct(scan_num,proc_type).smooth_result.area_notindexed_grains];
-
-        sum_g(proc_type,:)=di_g(proc_type,:)+tmt_g(proc_type,:)+esk_g(proc_type,:)+not_g(proc_type,:);
-
-        % %
-        afrac_di_g(proc_type,:)=di_g(proc_type,:)./sum_g(proc_type,:);
-        afrac_tmt_g(proc_type,:)=tmt_g(proc_type,:)./sum_g(proc_type,:);
-        afrac_esk_g(proc_type,:)=esk_g(proc_type,:)./sum_g(proc_type,:);
-        afrac_not_g=not_g(proc_type,:)./sum_g(proc_type,:);
-
-        svp(proc_type,:)=((4/pi())*(gbldi(proc_type,:)/1000)./...
-            (datastruct(scan_num).true_area/1e6))./afrac_di_g(proc_type,:);
+            gbldi(proc_type,:)=[datastruct(scan_num,proc_type).minsize_result.GBlength_Di];
+        
+            di_g(proc_type,:)=[datastruct(scan_num,proc_type).minsize_result.area_Di_grains];
+            tmt_g(proc_type,:)=[datastruct(scan_num,proc_type).minsize_result.area_Tmt_grains];
+            esk_g(proc_type,:)=[datastruct(scan_num,proc_type).minsize_result.area_Esk_grains];
+            not_g(proc_type,:)=[datastruct(scan_num,proc_type).minsize_result.area_notindexed_grains];
+        
+            sum_g(proc_type,:)=di_g(proc_type,:)+tmt_g(proc_type,:)+esk_g(proc_type,:)+not_g(proc_type,:);
+            
+            % %
+            afrac_di_g(proc_type,:)=di_g(proc_type,:)./sum_g(proc_type,:);
+            afrac_tmt_g(proc_type,:)=tmt_g(proc_type,:)./sum_g(proc_type,:);
+            afrac_esk_g(proc_type,:)=esk_g(proc_type,:)./sum_g(proc_type,:);
+            afrac_not_g=not_g(proc_type,:)./sum_g(proc_type,:);
+        
+            svp(proc_type,:)=((4/pi())*(gbldi(proc_type,:)/1000)./...
+            (datastruct(scan_num).true_area/1e6))./afrac_di_g(proc_type,:); 
             
         end
         
-        % jj gives column number of the Fit or CI threshold matrix to be
-        % plotted, and selects corresponding values to be plotted on y-axis
-        % two lines are plotted, one for standardised, one for
-        % non-standardised scan
-
-        plot(smoothnum,svp(2,:),'marker','o','Color',color(scan_num,:),'MarkerFaceColor','w','LineStyle',':','LineWidth',lw,'MarkerSize',msz)    
+        plot(minsize,svp(2,:),'marker','o','Color',color(scan_num,:),'MarkerFaceColor','w','LineStyle',':','LineWidth',lw,'MarkerSize',msz)    
         hold on
-        plot(smoothnum,svp(1,:),'marker','x','Color',color(scan_num,:),'LineWidth',lw,'MarkerSize',msz)
+        plot(minsize,svp(1,:),'marker','x','Color',color(scan_num,:),'LineWidth',lw,'MarkerSize',msz)
         
-        xlim([0 21])
-        xticks(smoothnum)
-        xlabel('N smoothing iterations')
-        ylim([300 1700])
+        xlim([0 11])
+        xticks([1:1:10])
+        xlabel('min. grainsize (pixels)')
+        ylim([200 1600])
         ylabel(ylab)
         
         ax = gca;
@@ -125,4 +120,51 @@ cd(savelocation)
 f = gcf;
 f.Position = [leftfrac*w botfrac*h horzfrac*w horzfrac*vert_div_horiz*w];
 
-exportgraphics(f,'Cpx_SvP_smooths.png','Resolution',300)
+% exportgraphics(f,'Cpx_SvP_gsizethresh.png','Resolution',300)
+
+%% Fig 4 b
+
+ylab='N_A Tmt (mm^-^2)';
+
+figure,
+
+    % Loop over each scan and processing type
+    for scan_num=1:4
+        for proc_type=1:2      
+        
+            % collect NA_tmt for all min size thresholds for a given scan   
+            ndens_tmt(proc_type,:)=[datastruct(scan_num,proc_type).minsize_result.N_density_Mt_true];
+            
+        end
+        
+        plot(minsize,ndens_tmt(2,:),'marker','o','Color',color(scan_num,:),'MarkerFaceColor','w','LineStyle',':','LineWidth',lw,'MarkerSize',msz)    
+        hold on
+        plot(minsize,ndens_tmt(1,:),'marker','x','Color',color(scan_num,:),'LineWidth',lw,'MarkerSize',msz)
+        
+        xlim([0 11])
+        xticks([1:1:10])
+        xlabel('min. grainsize (pixels)')
+        ylim([500 7000])
+        ylabel(ylab)
+        
+        ax = gca;
+        ax.XAxis.FontSize = ax_fs;
+        ax.YAxis.FontSize = ax_fs;
+        ax.XLabel.FontSize = fs-3;
+        % ax.XLabel.FontWeight = 'bold';
+        % ax.XLabel.Position(2) = ax.XLabel.Position(2)+0.25
+        ax.XLabel.FontAngle = 'italic';
+        ax.XTickLabelRotation = 90;
+        ax.YLabel.FontSize = fs;
+        % ax.YLabel.FontWeight = 'bold';
+        % ax.YLabel.FontAngle = 'italic';
+        ax.LineWidth = ax_lw;
+     end
+
+cd(savelocation)
+
+f = gcf;
+f.Position = [leftfrac*w botfrac*h horzfrac*w horzfrac*vert_div_horiz*w];
+
+exportgraphics(f,'Tmt_NA_gsizethresh.png','Resolution',300)
+

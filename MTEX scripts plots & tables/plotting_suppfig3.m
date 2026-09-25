@@ -21,7 +21,7 @@ cd(loadlocation)
 % MATLAB prefers to load data to structures and extract variables from them
 % instead of loading the variables directly 
 % (https://de.mathworks.com/matlabcentral/answers/28676-why-use-x-load-myfile-mat)
-input1=load('ETK5a5b_allscans_distort_minsizethresh.mat','datastruct','datastruct');
+input1=load('ETK5a5b_allscans_distort_cithresh.mat','datastruct','datastruct');
 
 datastruct=input1.datastruct;
 
@@ -29,15 +29,18 @@ clear input1
 
 fprintf('MATLAB variables loaded!\n\n') 
 
-minsize=datastruct(1).minsize_value;
+syze=size(datastruct(1).cifit_result);
+
+cithresh=datastruct(1).cithresh;
+fitthresh=datastruct(1).fitthresh;
 
 %% Plotting format settings
 
-lw=5; % linewidth
-fs=56; % fontsize x and y label
-ax_fs = 46; % fontsize axis numbering
-ax_lw = 5; % axis linewidth
-msz=28; % markersize
+lw=2.5; % linewidth
+fs=28; % fontsize x and y label
+ax_fs = 23; % fontsize axis numbering
+ax_lw = 2.5; % axis linewidth
+msz=16; % markersize
 
 % Get screen sizes and define screen fractions for plot positioning
 screendat=get(0,'ScreenSize');
@@ -45,10 +48,10 @@ w=screendat(3); % width
 h=screendat(4); % height
 leftfrac=0.01;
 botfrac=0.02;
-horzfrac=0.6;
+horzfrac=0.98;
 vertfrac=0.86;
 
-vert_div_horiz=1;
+vert_div_horiz=0.37
 
 % Generate color list of desired order
 color=colororder('gem');
@@ -59,95 +62,39 @@ color(2,:)=c4;
 color=flip(color);
 color=color([4:7],:);
 
-%% Fig 2 a
-
-ylab='\phi_C_p_x (%)';
-
-figure,
-
-    % Loop over each scan and processing type
-    for scan_num=1:4
-        for proc_type=1:2      
-        
-            % For each scan & proc type, obtain a matrix of results the
-            % same size as the matrix of input minsizethresh,
-            % store these all together in one indexable matrix
-            di_g(proc_type,:)=[datastruct(scan_num,proc_type).minsize_result.area_Di_grains];
-            tmt_g(proc_type,:)=[datastruct(scan_num,proc_type).minsize_result.area_Tmt_grains];
-            esk_g(proc_type,:)=[datastruct(scan_num,proc_type).minsize_result.area_Esk_grains];
-            not_g(proc_type,:)=[datastruct(scan_num,proc_type).minsize_result.area_notindexed_grains];
-        
-            sum_g(proc_type,:)=di_g(proc_type,:)+tmt_g(proc_type,:)+esk_g(proc_type,:)+not_g(proc_type,:);
-            
-            % %
-            afrac_di_g(proc_type,:)=di_g(proc_type,:)./sum_g(proc_type,:);
-            afrac_tmt_g(proc_type,:)=tmt_g(proc_type,:)./sum_g(proc_type,:);
-            afrac_esk_g(proc_type,:)=esk_g(proc_type,:)./sum_g(proc_type,:);
-            afrac_not_g(proc_type,:)=not_g(proc_type,:)./sum_g(proc_type,:);
-        
-        end
-        
-        % jj gives column number of the Fit or CI threshold matrix to be
-        % plotted, and selects corresponding values to be plotted on y-axis
-        % two lines are plotted, one for standardised, one for
-        % non-standardised scan
-
-        plot(minsize,100*(afrac_di_g(2,:)),'marker','o','Color',color(scan_num,:),'MarkerFaceColor','w','LineStyle',':','LineWidth',lw,'MarkerSize',msz)    
-        hold on
-        plot(minsize,100*(afrac_di_g(1,:)),'marker','x','Color',color(scan_num,:),'LineWidth',lw,'MarkerSize',msz)
-        
-        xlim([0 11])
-        xticks([1:1:10])
-        xlabel('min. grainsize (pixels)')
-        ylim([30 70])
-        ylabel(ylab)
-        
-        ax = gca;
-        ax.XAxis.FontSize = ax_fs;
-        ax.YAxis.FontSize = ax_fs;
-        ax.XLabel.FontSize = fs-3;
-        % ax.XLabel.FontWeight = 'bold';
-        % ax.XLabel.Position(2) = ax.XLabel.Position(2)+0.25
-        ax.XLabel.FontAngle = 'italic';
-        ax.XTickLabelRotation = 90;
-        ax.YLabel.FontSize = fs;
-        % ax.YLabel.FontWeight = 'bold';
-        % ax.YLabel.FontAngle = 'italic';
-        ax.LineWidth = ax_lw;
-     end
-
-cd(savelocation)
-
-f = gcf;
-f.Position = [leftfrac*w botfrac*h horzfrac*w horzfrac*vert_div_horiz*w];
-
-exportgraphics(f,'Cpx_crystallinity_gsizethresh.png','Resolution',300)
-
-%% Fig 2 b
-
+%% Supp. Fig. 3 a
 ylab='\phi_T_m_t (%)';
 
+% titlelist={'CI thresh only','Fit thresh only','CI thresh (Fit=1.4)','Fit Thresh (CI=0.1)'};
+
 figure,
+% For 2 subplots...
+t=tiledlayout(1,4);
+
+for jj=1:4
+
+nexttile    
+% subplot(1,4,jj)
 
     % Loop over each scan and processing type
     for scan_num=1:4
         for proc_type=1:2      
         
-            % For each scan & proc type, obtain a matrix of results the
-            % same size as the matrix of input minsizethresh,
-            % store these all together in one indexable matrix
-            di_g(proc_type,:)=[datastruct(scan_num,proc_type).minsize_result.area_Di_grains];
-            tmt_g(proc_type,:)=[datastruct(scan_num,proc_type).minsize_result.area_Tmt_grains];
-            esk_g(proc_type,:)=[datastruct(scan_num,proc_type).minsize_result.area_Esk_grains];
-            not_g(proc_type,:)=[datastruct(scan_num,proc_type).minsize_result.area_notindexed_grains];
+            % For each scan & proc type, obtain a 5x4 matrix of results the
+            % same size as the matrix of input CI and Fit combinations,
+            % store these all together in one indexable 4D matrix
+            di_g(:,:,proc_type,scan_num)=reshape([datastruct(scan_num,proc_type).cifit_result.area_Di_grains],syze);
+            tmt_g(:,:,proc_type,scan_num)=reshape([datastruct(scan_num,proc_type).cifit_result.area_Tmt_grains],syze);
+            esk_g(:,:,proc_type,scan_num)=reshape([datastruct(scan_num,proc_type).cifit_result.area_Esk_grains],syze);
+            not_g(:,:,proc_type,scan_num)=reshape([datastruct(scan_num,proc_type).cifit_result.area_notindexed_grains],syze);
         
-            sum_g(proc_type,:)=di_g(proc_type,:)+tmt_g(proc_type,:)+esk_g(proc_type,:)+not_g(proc_type,:);
+            sum_g(:,:,proc_type,scan_num)=di_g(:,:,proc_type,scan_num)+tmt_g(:,:,proc_type,scan_num)+esk_g(:,:,proc_type,scan_num)+not_g(:,:,proc_type,scan_num);
             
-            % %
-            afrac_di_g(proc_type,:)=di_g(proc_type,:)./sum_g(proc_type,:);
-            afrac_tmt_g(proc_type,:)=tmt_g(proc_type,:)./sum_g(proc_type,:);
-            afrac_esk_g(proc_type,:)=esk_g(proc_type,:)./sum_g(proc_type,:);
-            afrac_not_g(proc_type,:)=not_g(proc_type,:)./sum_g(proc_type,:);
+            % Calculate area fractions
+            afrac_di_g(:,:,proc_type,scan_num)=di_g(:,:,proc_type,scan_num)./sum_g(:,:,proc_type,scan_num);
+            afrac_tmt_g(:,:,proc_type,scan_num)=tmt_g(:,:,proc_type,scan_num)./sum_g(:,:,proc_type,scan_num);
+            afrac_esk_g(:,:,proc_type,scan_num)=esk_g(:,:,proc_type,scan_num)./sum_g(:,:,proc_type,scan_num);
+            afrac_not_g(:,:,proc_type,scan_num)=not_g(:,:,proc_type,scan_num)./sum_g(:,:,proc_type,scan_num);
         
         end
         
@@ -155,16 +102,48 @@ figure,
         % plotted, and selects corresponding values to be plotted on y-axis
         % two lines are plotted, one for standardised, one for
         % non-standardised scan
+        switch jj
+            case 1
+            plot(cithresh(:,jj),100*(afrac_tmt_g(:,jj,2,scan_num)),'marker','o','Color',color(scan_num,:),'MarkerFaceColor','w','LineStyle',':','LineWidth',lw,'MarkerSize',msz)    
+            hold on
+            plot(cithresh(:,jj),100*(afrac_tmt_g(:,jj,1,scan_num)),'marker','x','Color',color(scan_num,:),'LineWidth',lw,'MarkerSize',msz)
+            xlim([0.04 0.16])
+            xticks([0.05:0.025:0.15])
+            xlabel('CI thresh. (only)')
+            xtickformat('%-5.3f')
+            ylabel(ylab)
+            case 2 
+            plot(fitthresh(:,jj),100*(afrac_tmt_g(:,jj,2,scan_num)),'marker','o','Color',color(scan_num,:),'MarkerFaceColor','w','LineStyle',':','LineWidth',lw,'MarkerSize',msz)
+            hold on
+            plot(fitthresh(:,jj),100*(afrac_tmt_g(:,jj,1,scan_num)),'marker','x','Color',color(scan_num,:),'LineWidth',lw,'MarkerSize',msz)                    
+            xlim([1.1 1.7])
+            xticks([1.2:0.1:1.6])
+            set ( gca, 'XDir', 'reverse' )
+            xlabel('Fit thresh. (only)');
+            xtickformat('%-5.2f')
+            ylabel(ylab)
+            case 3
+            plot(cithresh(:,jj),100*(afrac_tmt_g(:,jj,2,scan_num)),'marker','o','Color',color(scan_num,:),'MarkerFaceColor','w','LineStyle',':','LineWidth',lw,'MarkerSize',msz)    
+            hold on
+            plot(cithresh(:,jj),100*(afrac_tmt_g(:,jj,1,scan_num)),'marker','x','Color',color(scan_num,:),'LineWidth',lw,'MarkerSize',msz)
+            xlim([0.04 0.16])
+            xticks([0.05:0.025:0.15])
+            xlabel('CI thresh. (Fit = 1.4)')
+            xtickformat('%-5.3f')
+            ylabel(ylab)
+            case 4 
+            plot(fitthresh(:,jj),100*(afrac_tmt_g(:,jj,2,scan_num)),'marker','o','Color',color(scan_num,:),'MarkerFaceColor','w','LineStyle',':','LineWidth',lw,'MarkerSize',msz)
+            hold on
+            plot(fitthresh(:,jj),100*(afrac_tmt_g(:,jj,1,scan_num)),'marker','x','Color',color(scan_num,:),'LineWidth',lw,'MarkerSize',msz)                    
+            xlim([1.1 1.7])
+            xticks([1.2:0.1:1.6])
+            set ( gca, 'XDir', 'reverse' )
+            xlabel('Fit thresh. (CI = 0.1)');
+            xtickformat('%-5.2f')
+            ylabel(ylab)
 
-        plot(minsize,100*(afrac_tmt_g(2,:)),'marker','o','Color',color(scan_num,:),'MarkerFaceColor','w','LineStyle',':','LineWidth',lw,'MarkerSize',msz)    
-        hold on
-        plot(minsize,100*(afrac_tmt_g(1,:)),'marker','x','Color',color(scan_num,:),'LineWidth',lw,'MarkerSize',msz)
-        
-        xlim([0 11])
-        xticks([1:1:10])
-        xlabel('min. grainsize (pixels)')
-        ylim([1 3.5])
-        ylabel(ylab)
+        end
+        ylim([1 4])
         
         ax = gca;
         ax.XAxis.FontSize = ax_fs;
@@ -180,38 +159,47 @@ figure,
         ax.LineWidth = ax_lw;
      end
 
+end
+
 cd(savelocation)
 
 f = gcf;
-f.Position = [leftfrac*w botfrac*h horzfrac*w horzfrac*vert_div_horiz*w];
+f.Position = [leftfrac*w botfrac*h 1*horzfrac*w 1*horzfrac*vert_div_horiz*w];
 
-exportgraphics(f,'Tmt_crystallinity_gsizethresh.png','Resolution',300)
-
-%% Fig 2 c
-
+exportgraphics(f,'Tmt_crystallinity_full_CIfit.png','Resolution',300)
+%% Supp. Fig. 3 b
 ylab='\phi_E_s_k (%)';
 
+% titlelist={'CI thresh only','Fit thresh only','CI thresh (Fit=1.4)','Fit Thresh (CI=0.1)'};
+
 figure,
+% For 2 subplots...
+t=tiledlayout(1,4);
+
+for jj=1:4
+
+nexttile    
+% subplot(1,4,jj)
 
     % Loop over each scan and processing type
     for scan_num=1:4
         for proc_type=1:2      
         
-            % For each scan & proc type, obtain a matrix of results the
-            % same size as the matrix of input minsizethresh,
-            % store these all together in one indexable matrix
-            di_g(proc_type,:)=[datastruct(scan_num,proc_type).minsize_result.area_Di_grains];
-            tmt_g(proc_type,:)=[datastruct(scan_num,proc_type).minsize_result.area_Tmt_grains];
-            esk_g(proc_type,:)=[datastruct(scan_num,proc_type).minsize_result.area_Esk_grains];
-            not_g(proc_type,:)=[datastruct(scan_num,proc_type).minsize_result.area_notindexed_grains];
+            % For each scan & proc type, obtain a 5x4 matrix of results the
+            % same size as the matrix of input CI and Fit combinations,
+            % store these all together in one indexable 4D matrix
+            di_g(:,:,proc_type,scan_num)=reshape([datastruct(scan_num,proc_type).cifit_result.area_Di_grains],syze);
+            tmt_g(:,:,proc_type,scan_num)=reshape([datastruct(scan_num,proc_type).cifit_result.area_Tmt_grains],syze);
+            esk_g(:,:,proc_type,scan_num)=reshape([datastruct(scan_num,proc_type).cifit_result.area_Esk_grains],syze);
+            not_g(:,:,proc_type,scan_num)=reshape([datastruct(scan_num,proc_type).cifit_result.area_notindexed_grains],syze);
         
-            sum_g(proc_type,:)=di_g(proc_type,:)+tmt_g(proc_type,:)+esk_g(proc_type,:)+not_g(proc_type,:);
+            sum_g(:,:,proc_type,scan_num)=di_g(:,:,proc_type,scan_num)+tmt_g(:,:,proc_type,scan_num)+esk_g(:,:,proc_type,scan_num)+not_g(:,:,proc_type,scan_num);
             
-            % %
-            afrac_di_g(proc_type,:)=di_g(proc_type,:)./sum_g(proc_type,:);
-            afrac_tmt_g(proc_type,:)=tmt_g(proc_type,:)./sum_g(proc_type,:);
-            afrac_esk_g(proc_type,:)=esk_g(proc_type,:)./sum_g(proc_type,:);
-            afrac_not_g(proc_type,:)=not_g(proc_type,:)./sum_g(proc_type,:);
+            % Calculate area fractions
+            afrac_di_g(:,:,proc_type,scan_num)=di_g(:,:,proc_type,scan_num)./sum_g(:,:,proc_type,scan_num);
+            afrac_tmt_g(:,:,proc_type,scan_num)=tmt_g(:,:,proc_type,scan_num)./sum_g(:,:,proc_type,scan_num);
+            afrac_esk_g(:,:,proc_type,scan_num)=esk_g(:,:,proc_type,scan_num)./sum_g(:,:,proc_type,scan_num);
+            afrac_not_g(:,:,proc_type,scan_num)=not_g(:,:,proc_type,scan_num)./sum_g(:,:,proc_type,scan_num);
         
         end
         
@@ -219,16 +207,48 @@ figure,
         % plotted, and selects corresponding values to be plotted on y-axis
         % two lines are plotted, one for standardised, one for
         % non-standardised scan
+        switch jj
+            case 1
+            plot(cithresh(:,jj),100*(afrac_esk_g(:,jj,2,scan_num)),'marker','o','Color',color(scan_num,:),'MarkerFaceColor','w','LineStyle',':','LineWidth',lw,'MarkerSize',msz)    
+            hold on
+            plot(cithresh(:,jj),100*(afrac_esk_g(:,jj,1,scan_num)),'marker','x','Color',color(scan_num,:),'LineWidth',lw,'MarkerSize',msz)
+            xlim([0.04 0.16])
+            xticks([0.05:0.025:0.15])
+            xlabel('CI thresh. (only)')
+            xtickformat('%-5.3f')
+            ylabel(ylab)
+            case 2 
+            plot(fitthresh(:,jj),100*(afrac_esk_g(:,jj,2,scan_num)),'marker','o','Color',color(scan_num,:),'MarkerFaceColor','w','LineStyle',':','LineWidth',lw,'MarkerSize',msz)
+            hold on
+            plot(fitthresh(:,jj),100*(afrac_esk_g(:,jj,1,scan_num)),'marker','x','Color',color(scan_num,:),'LineWidth',lw,'MarkerSize',msz)                    
+            xlim([1.1 1.7])
+            xticks([1.2:0.1:1.6])
+            set ( gca, 'XDir', 'reverse' )
+            xlabel('Fit thresh. (only)');
+            xtickformat('%-5.2f')
+            ylabel(ylab)
+            case 3
+            plot(cithresh(:,jj),100*(afrac_esk_g(:,jj,2,scan_num)),'marker','o','Color',color(scan_num,:),'MarkerFaceColor','w','LineStyle',':','LineWidth',lw,'MarkerSize',msz)    
+            hold on
+            plot(cithresh(:,jj),100*(afrac_esk_g(:,jj,1,scan_num)),'marker','x','Color',color(scan_num,:),'LineWidth',lw,'MarkerSize',msz)
+            xlim([0.04 0.16])
+            xticks([0.05:0.025:0.15])
+            xlabel('CI thresh. (Fit = 1.4)')
+            xtickformat('%-5.3f')
+            ylabel(ylab)
+            case 4 
+            plot(fitthresh(:,jj),100*(afrac_esk_g(:,jj,2,scan_num)),'marker','o','Color',color(scan_num,:),'MarkerFaceColor','w','LineStyle',':','LineWidth',lw,'MarkerSize',msz)
+            hold on
+            plot(fitthresh(:,jj),100*(afrac_esk_g(:,jj,1,scan_num)),'marker','x','Color',color(scan_num,:),'LineWidth',lw,'MarkerSize',msz)                    
+            xlim([1.1 1.7])
+            xticks([1.2:0.1:1.6])
+            set ( gca, 'XDir', 'reverse' )
+            xlabel('Fit thresh. (CI = 0.1)');
+            xtickformat('%-5.2f')
+            ylabel(ylab)
 
-        plot(minsize,100*(afrac_esk_g(2,:)),'marker','o','Color',color(scan_num,:),'MarkerFaceColor','w','LineStyle',':','LineWidth',lw,'MarkerSize',msz)    
-        hold on
-        plot(minsize,100*(afrac_esk_g(1,:)),'marker','x','Color',color(scan_num,:),'LineWidth',lw,'MarkerSize',msz)
-        
-        xlim([0 11])
-        xticks([1:1:10])
-        xlabel('min. grainsize (pixels)')
+        end
         ylim([0 0.15])
-        ylabel(ylab)
         
         ax = gca;
         ax.XAxis.FontSize = ax_fs;
@@ -244,47 +264,97 @@ figure,
         ax.LineWidth = ax_lw;
      end
 
+end
+
 cd(savelocation)
 
 f = gcf;
-f.Position = [leftfrac*w botfrac*h horzfrac*w horzfrac*vert_div_horiz*w];
+f.Position = [leftfrac*w botfrac*h 1*horzfrac*w 1*horzfrac*vert_div_horiz*w];
 
-exportgraphics(f,'Esk_crystallinity_gsizethresh.png','Resolution',300)
+exportgraphics(f,'Esk_crystallinity_full_CIfit.png','Resolution',300)
 
-%% Fig 2 d
+%% Supp. Fig. 3 c
+ylab='\phi_c_r_y_s_t_a_l_s (%)';
 
-ylab='L_m_a_x Cpx (\mum)';
+% titlelist={'CI thresh only','Fit thresh only','CI thresh (Fit=1.4)','Fit Thresh (CI=0.1)'};
 
 figure,
+% For 2 subplots...
+t=tiledlayout(1,4);
+
+for jj=1:4
+
+nexttile    
+% subplot(1,4,jj)
 
     % Loop over each scan and processing type
     for scan_num=1:4
         for proc_type=1:2      
         
-            for ii=1:length(minsize)
-                majoraxD=datastruct(scan_num,proc_type).minsize_result(ii).majoraxD;
-                [~,sort_areaID]=sort(datastruct(scan_num,proc_type).minsize_result(ii).minsize_grains('Diopside').area);
-                majoraxD=majoraxD(sort_areaID);
-                lmax10_D(ii)=mean([majoraxD(end-9:end)]);
-            end
-            means(proc_type,:)=lmax10_D;
+            % For each scan & proc type, obtain a 5x4 matrix of results the
+            % same size as the matrix of input CI and Fit combinations,
+            % store these all together in one indexable 4D matrix
+            di_g(:,:,proc_type,scan_num)=reshape([datastruct(scan_num,proc_type).cifit_result.area_Di_grains],syze);
+            tmt_g(:,:,proc_type,scan_num)=reshape([datastruct(scan_num,proc_type).cifit_result.area_Tmt_grains],syze);
+            esk_g(:,:,proc_type,scan_num)=reshape([datastruct(scan_num,proc_type).cifit_result.area_Esk_grains],syze);
+            not_g(:,:,proc_type,scan_num)=reshape([datastruct(scan_num,proc_type).cifit_result.area_notindexed_grains],syze);
+        
+            sum_g(:,:,proc_type,scan_num)=di_g(:,:,proc_type,scan_num)+tmt_g(:,:,proc_type,scan_num)+esk_g(:,:,proc_type,scan_num)+not_g(:,:,proc_type,scan_num);
             
+            % Calculate area fractions
+            afrac_di_g(:,:,proc_type,scan_num)=di_g(:,:,proc_type,scan_num)./sum_g(:,:,proc_type,scan_num);
+            afrac_tmt_g(:,:,proc_type,scan_num)=tmt_g(:,:,proc_type,scan_num)./sum_g(:,:,proc_type,scan_num);
+            afrac_esk_g(:,:,proc_type,scan_num)=esk_g(:,:,proc_type,scan_num)./sum_g(:,:,proc_type,scan_num);
+            afrac_not_g(:,:,proc_type,scan_num)=not_g(:,:,proc_type,scan_num)./sum_g(:,:,proc_type,scan_num);
+        
         end
         
         % jj gives column number of the Fit or CI threshold matrix to be
         % plotted, and selects corresponding values to be plotted on y-axis
         % two lines are plotted, one for standardised, one for
         % non-standardised scan
+        switch jj
+            case 1
+            plot(cithresh(:,jj),100*(1-afrac_not_g(:,jj,2,scan_num)),'marker','o','Color',color(scan_num,:),'MarkerFaceColor','w','LineStyle',':','LineWidth',lw,'MarkerSize',msz)    
+            hold on
+            plot(cithresh(:,jj),100*(1-afrac_not_g(:,jj,1,scan_num)),'marker','x','Color',color(scan_num,:),'LineWidth',lw,'MarkerSize',msz)
+            xlim([0.04 0.16])
+            xticks([0.05:0.025:0.15])
+            xlabel('CI thresh. (only)')
+            xtickformat('%-5.3f')
+            ylabel(ylab)
+            case 2 
+            plot(fitthresh(:,jj),100*(1-afrac_not_g(:,jj,2,scan_num)),'marker','o','Color',color(scan_num,:),'MarkerFaceColor','w','LineStyle',':','LineWidth',lw,'MarkerSize',msz)
+            hold on
+            plot(fitthresh(:,jj),100*(1-afrac_not_g(:,jj,1,scan_num)),'marker','x','Color',color(scan_num,:),'LineWidth',lw,'MarkerSize',msz)                    
+            xlim([1.1 1.7])
+            xticks([1.2:0.1:1.6])
+            set ( gca, 'XDir', 'reverse' )
+            xlabel('Fit thresh. (only)');
+            xtickformat('%-5.2f')
+            ylabel(ylab)
+            case 3
+            plot(cithresh(:,jj),100*(1-afrac_not_g(:,jj,2,scan_num)),'marker','o','Color',color(scan_num,:),'MarkerFaceColor','w','LineStyle',':','LineWidth',lw,'MarkerSize',msz)    
+            hold on
+            plot(cithresh(:,jj),100*(1-afrac_not_g(:,jj,1,scan_num)),'marker','x','Color',color(scan_num,:),'LineWidth',lw,'MarkerSize',msz)
+            xlim([0.04 0.16])
+            xticks([0.05:0.025:0.15])
+            xlabel('CI thresh. (Fit = 1.4)')
+            xtickformat('%-5.3f')
+            ylabel(ylab)
+            case 4 
+            plot(fitthresh(:,jj),100*(1-afrac_not_g(:,jj,2,scan_num)),'marker','o','Color',color(scan_num,:),'MarkerFaceColor','w','LineStyle',':','LineWidth',lw,'MarkerSize',msz)
+            hold on
+            plot(fitthresh(:,jj),100*(1-afrac_not_g(:,jj,1,scan_num)),'marker','x','Color',color(scan_num,:),'LineWidth',lw,'MarkerSize',msz)                    
+            xlim([1.1 1.7])
+            xticks([1.2:0.1:1.6])
+            set ( gca, 'XDir', 'reverse' )
+            xlabel('Fit thresh. (CI = 0.1)');
+            xtickformat('%-5.2f')
+            ylabel(ylab)
 
-        plot(minsize,means(2,:),'marker','o','Color',color(scan_num,:),'MarkerFaceColor','w','LineStyle',':','LineWidth',lw,'MarkerSize',msz)    
-        hold on
-        plot(minsize,means(1,:),'marker','x','Color',color(scan_num,:),'LineWidth',lw,'MarkerSize',msz)
-        
-        xlim([0 11])
-        xticks([1:1:10])
-        xlabel('min. grainsize (pixels)')
-        ylim([50 130])
-        ylabel(ylab)
+        end
+        ylim([35 70])
         
         ax = gca;
         ax.XAxis.FontSize = ax_fs;
@@ -300,47 +370,91 @@ figure,
         ax.LineWidth = ax_lw;
      end
 
+end
+
 cd(savelocation)
 
 f = gcf;
-f.Position = [leftfrac*w botfrac*h horzfrac*w horzfrac*vert_div_horiz*w];
+f.Position = [leftfrac*w botfrac*h 1*horzfrac*w 1*horzfrac*vert_div_horiz*w];
 
-exportgraphics(f,'Cpx_Lmax_gsizethresh.png','Resolution',300)
+exportgraphics(f,'crystallinity_full_CIfit.png','Resolution',300)
 
-%% Fig 2 d
-
+%% Supp. Fig. 3 d
 ylab='L_m_a_x Tmt (\mum)';
 
+% titlelist={'CI thresh only','Fit thresh only','CI thresh (Fit=1.4)','Fit Thresh (CI=0.1)'};
+
 figure,
+% For 2 subplots...
+t=tiledlayout(1,4);
+
+for jj=1:4
+
+nexttile    
+% subplot(1,4,jj)
 
     % Loop over each scan and processing type
     for scan_num=1:4
         for proc_type=1:2      
         
-            for ii=1:length(minsize)
-                majoraxM=datastruct(scan_num,proc_type).minsize_result(ii).majoraxM;
-                [~,sort_areaID]=sort(datastruct(scan_num,proc_type).minsize_result(ii).minsize_grains('Magnetite').area);
+            % cifit_result doesn't contain pre-calculated Lmax10, need to
+            % caclulate it here...
+            for ii=1:length(cithresh(:,jj))
+                majoraxM=datastruct(scan_num,proc_type).cifit_result(ii,jj).majoraxM;
+                [~,sort_areaID]=sort(datastruct(scan_num,proc_type).cifit_result(ii,jj).ci_fit_grains('Magnetite').area);
                 majoraxM=majoraxM(sort_areaID);
                 lmax10_M(ii)=mean([majoraxM(end-9:end)]);
             end
-            means(proc_type,:)=lmax10_M;
-            
+            means(:,jj,proc_type,scan_num)=lmax10_M;
+        
         end
         
         % jj gives column number of the Fit or CI threshold matrix to be
         % plotted, and selects corresponding values to be plotted on y-axis
         % two lines are plotted, one for standardised, one for
         % non-standardised scan
+        switch jj
+            case 1
+            plot(cithresh(:,jj),means(:,jj,2,scan_num),'marker','o','Color',color(scan_num,:),'MarkerFaceColor','w','LineStyle',':','LineWidth',lw,'MarkerSize',msz)    
+            hold on
+            plot(cithresh(:,jj),means(:,jj,1,scan_num),'marker','x','Color',color(scan_num,:),'LineWidth',lw,'MarkerSize',msz)
+            xlim([0.04 0.16])
+            xticks([0.05:0.025:0.15])
+            xlabel('CI thresh. (only)')
+            xtickformat('%-5.3f')
+            ylabel(ylab)
+            case 2 
+            plot(fitthresh(:,jj),means(:,jj,2,scan_num),'marker','o','Color',color(scan_num,:),'MarkerFaceColor','w','LineStyle',':','LineWidth',lw,'MarkerSize',msz)
+            hold on
+            plot(fitthresh(:,jj),means(:,jj,1,scan_num),'marker','x','Color',color(scan_num,:),'LineWidth',lw,'MarkerSize',msz)                    
+            xlim([1.1 1.7])
+            xticks([1.2:0.1:1.6])
+            set ( gca, 'XDir', 'reverse' )
+            xlabel('Fit thresh. (only)');
+            xtickformat('%-5.2f')
+            ylabel(ylab)
+            case 3
+            plot(cithresh(:,jj),means(:,jj,2,scan_num),'marker','o','Color',color(scan_num,:),'MarkerFaceColor','w','LineStyle',':','LineWidth',lw,'MarkerSize',msz)    
+            hold on
+            plot(cithresh(:,jj),means(:,jj,1,scan_num),'marker','x','Color',color(scan_num,:),'LineWidth',lw,'MarkerSize',msz)
+            xlim([0.04 0.16])
+            xticks([0.05:0.025:0.15])
+            xlabel('CI thresh. (Fit = 1.4)')
+            xtickformat('%-5.3f')
+            ylabel(ylab)
+            case 4 
+            plot(fitthresh(:,jj),means(:,jj,2,scan_num),'marker','o','Color',color(scan_num,:),'MarkerFaceColor','w','LineStyle',':','LineWidth',lw,'MarkerSize',msz)
+            hold on
+            plot(fitthresh(:,jj),means(:,jj,1,scan_num),'marker','x','Color',color(scan_num,:),'LineWidth',lw,'MarkerSize',msz)                    
+            xlim([1.1 1.7])
+            xticks([1.2:0.1:1.6])
+            set ( gca, 'XDir', 'reverse' )
+            xlabel('Fit thresh. (CI = 0.1)');
+            xtickformat('%-5.2f')
+            ylabel(ylab)
 
-        plot(minsize,means(2,:),'marker','o','Color',color(scan_num,:),'MarkerFaceColor','w','LineStyle',':','LineWidth',lw,'MarkerSize',msz)    
-        hold on
-        plot(minsize,means(1,:),'marker','x','Color',color(scan_num,:),'LineWidth',lw,'MarkerSize',msz)
-        
-        xlim([0 11])
-        xticks([1:1:10])
-        xlabel('min. grainsize (pixels)')
+        end
         ylim([5 13])
-        ylabel(ylab)
         
         ax = gca;
         ax.XAxis.FontSize = ax_fs;
@@ -356,9 +470,11 @@ figure,
         ax.LineWidth = ax_lw;
      end
 
+end
+
 cd(savelocation)
 
 f = gcf;
-f.Position = [leftfrac*w botfrac*h horzfrac*w horzfrac*vert_div_horiz*w];
+f.Position = [leftfrac*w botfrac*h 1*horzfrac*w 1*horzfrac*vert_div_horiz*w];
 
-exportgraphics(f,'Tmt_Lmax_gsizethresh.png','Resolution',300)
+exportgraphics(f,'Tmt_Lmax_full_CIfit.png','Resolution',300)

@@ -35,34 +35,9 @@ fprintf('MATLAB variables loaded!\n\n')
 
 % setMTEXpref('showMicronBar','off')
 
-
-%%
+%% 
 setMTEXpref('showCoordinates','on')
-setMTEXpref('showMicronBar','off')
 
-mapn=1;
-
-% ebsd=datastruct(mapn,1).data;
-% eg=ebsd.gridify;
-% figure,plot(eg,eg.ci)
-% mtexColorMap black2white
-% clim([0 1])
-
-ebsd=datastruct(mapn,1).data;
-% eg=ebsd.gridify;
-% figure,plot(eg,eg.ci)
-% mtexColorMap black2white
-% clim([0 1])
-
-
-figure,plot(ebsd,ebsd.iq)
-mtexColorMap black2white
-
-% eg=ebsd.gridify;
-% 
-% figure,plot(eg(eg.ci>0.1),eg(eg.ci>0.1).iq)
-
-%%
 screendat=get(0,'ScreenSize');
 w=screendat(3);
 h=screendat(4);
@@ -71,13 +46,13 @@ leftfrac=0.02;
 botfrac=0.045;
 horzfrac=0.32;
 
-rect=[189 -222 9 9];
+rect=[245 -224 27 27];
 
 cd(savelocation)
 
 lw=3;
 
-mapn=1;
+mapn=3;
 
 ar=rect(4)/rect(3);
 
@@ -100,12 +75,12 @@ ylim([rect(2) rect(2)+rect(4)])
 
 f = gcf;
 f.Position = [leftfrac*w botfrac*h horzfrac*w horzfrac*w*ar];
-exportgraphics(f,'speckle_stand_v_nostand_gbs_IQ.png','Resolution',300)
+exportgraphics(f,'quench_stand_v_nostand_gbs_IQ.png','Resolution',300)
 
 figure,
 plot(ebsdsel,ebsdsel.ci)
 mtexColorMap black2white
-clim([0 1])
+clim([0 0.5])
 hold on
 plot(datastruct(mapn).cifit_result(3,1).ci_fit_grains.boundary,'linewidth',lw,'linecolor','HotPink')
 hold on
@@ -115,7 +90,7 @@ ylim([rect(2) rect(2)+rect(4)])
 
 f = gcf;
 f.Position = [leftfrac*w botfrac*h horzfrac*w horzfrac*w*ar];
-exportgraphics(f,'speckle_stand_v_nostand_gbs_nostandCI.png','Resolution',300)
+exportgraphics(f,'quench_stand_v_nostand_gbs_nostandCI.png','Resolution',300)
 
 ebsd=datastruct(mapn,2).data;
 
@@ -126,7 +101,7 @@ ebsdsel=ebsd(sel).gridify;
 figure,
 plot(ebsdsel,ebsdsel.ci)
 mtexColorMap black2white
-clim([0 1])
+clim([0 0.5])
 hold on
 plot(datastruct(mapn).cifit_result(3,1).ci_fit_grains.boundary,'linewidth',lw,'linecolor','HotPink')
 hold on
@@ -136,7 +111,7 @@ ylim([rect(2) rect(2)+rect(4)])
 
 f = gcf;
 f.Position = [leftfrac*w botfrac*h horzfrac*w horzfrac*w*ar];
-exportgraphics(f,'speckle_stand_v_nostand_gbs_standCI.png','Resolution',300)
+exportgraphics(f,'quench_stand_v_nostand_gbs_standCI.png','Resolution',300)
 
 ebsdsel_di=ebsdsel('Diopside');
 
@@ -147,7 +122,7 @@ ipf_sel_colors=ipf_sel.orientation2color(ebsdsel_di.orientations)
 figure,
 plot(ebsdsel,ebsdsel.ci)
 mtexColorMap black2white
-clim([0 1])
+clim([0 0.5])
 hold on
 plot(ebsdsel_di(ebsdsel_di.ci>0.1),ipf_sel_colors(ebsdsel_di.ci>0.1,:))
 hold on
@@ -159,4 +134,4 @@ ylim([rect(2) rect(2)+rect(4)])
 
 f = gcf;
 f.Position = [leftfrac*w botfrac*h horzfrac*w horzfrac*w*ar];
-exportgraphics(f,'speckle_stand_v_nostand_gbs_standIPF.png','Resolution',300)
+exportgraphics(f,'quench_stand_v_nostand_gbs_standIPF.png','Resolution',300)
