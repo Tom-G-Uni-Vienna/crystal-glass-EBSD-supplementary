@@ -1,4 +1,4 @@
-# crystal-glass-EBSD-supplementary
+# crystal-glass-EBSD-supplementary [![DOI](https://zenodo.org/badge/1160769401.svg)](https://doi.org/10.5281/zenodo.22962619)
 Digital Supplementary Material to the paper "Optimizing Quantification of Microstructural Parameters of Crystal-Glass Assemblages by Electron Backscatter Diffraction", submitted for review to Journal of Petrology.
 
 This repository contains Matlab scripts written using the MTEX toolbox version 5.11.2 (https://mtex-toolbox.github.io/) to assess the effect of different EBSD processing parameters on microstructural quantification of crystal-glass assembages from EBSD data. The repository also contains the raw EBSD data files used as input and scripts that can be used to reproduce all plots used in the paper. 
